@@ -3,148 +3,267 @@ import { connect } from 'react-redux';
 import { Field, reduxForm, formValueSelector } from 'redux-form';
 import validate from "../../validation/validate";
 import styles from './Form.module.scss'
+import TextField from 'material-ui/TextField';
+import {TimePicker} from "@material-ui/pickers";
+import SelectField from 'material-ui/SelectField';
+import MenuItem from 'material-ui/MenuItem';
+import {Button} from "@mui/material";
+import { createMuiTheme } from "@material-ui/core";
+import { ThemeProvider } from "@material-ui/styles";
+import Slider from '@mui/material/Slider';
+import MuiInput from '@mui/material/Input';
+import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
+import { styled } from '@mui/material/styles';
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
 
-const renderField = ({
-    input,
-    type,
-    placeholder,
-    min,
-    max,
-    step,
-    meta: {touched, error }
-}) => (
-    <div>
-        <div>
-            <input
-                {...input}
-                type={type}
-                placeholder={placeholder}
-                min={min}
-                max={max}
-                step={step}
+
+
+const materialTheme = createMuiTheme({
+    overrides: {
+        MuiPickersToolbar: {
+            toolbar: {
+                backgroundColor: '#1976d2',
+            }
+        },
+        MuiButton: {
+            textPrimary: {
+                color:  '#1976d2',
+            }
+        },
+        MuiPickersClockPointer: {
+            thumb: {
+                border: '14px solid #1976d2',
+            },
+            pointer: {
+                backgroundColor: '#1976d2',
+            }
+        },
+        MuiFormLabel: {
+            root: {
+                color: 'rgba(0, 0, 0, 0.30)',
+                "&$focused": {
+                    color: '#51d1e1',
+                }
+            },
+        },
+        MuiInput: {
+            underline: {
+                "&:after": {
+                    borderBottom: '2px solid #51d1e1',
+                },
+                "&:before": {
+                    borderBottom: '0.5px solid rgba(0, 0, 0, 0.15)',
+                }
+            }
+        },
+        Mui: {
+            focused: {
+                color: '#51d1e1',
+            }
+        }
+    },
+});
+
+const Input = styled(MuiInput)`
+  width: 36px;
+`;
+
+function InputSlider() {
+    const [value, setValue] = React.useState(5);
+
+    const handleSliderChange = (event, newValue) => {
+        setValue(newValue);
+    };
+
+    const handleInputChange = (event) => {
+        setValue(event.target.value === '' ? '' : Number(event.target.value));
+    };
+
+    const handleBlur = () => {
+        if (value < 1) {
+            setValue(1);
+        } else if (value > 10) {
+            setValue(10);
+        }
+    };
+
+    return (
+        <Box sx={{ width: 250 }}>
+            <Grid container spacing={2} alignItems="center">
+                <Grid item>
+                    <Input
+                        value={value}
+                        size="small"
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        inputProps={{
+                            step: 1,
+                            min: 1,
+                            max: 10,
+                            type: 'number',
+                            'aria-labelledby': 'input-slider',
+                        }}
+                    />
+                </Grid>
+                <Grid item xs>
+                    <Slider
+                        value={typeof value === 'number' ? value : 0}
+                        step={1}
+                        min={1}
+                        max={10}
+                        onChange={handleSliderChange}
+                        sx={{
+                            color: '#d32f2f',
+                        }}
+                    />
+                </Grid>
+                <Grid item>
+                    <LocalFireDepartmentIcon color='error'/>
+                </Grid>
+
+            </Grid>
+        </Box>
+    );
+}
+
+const renderTextField = (
+    { input, type, step, label, meta: { touched, error }, ...custom },
+) => (
+    <TextField
+        type={type}
+        step={step}
+        hintText={label}
+        floatingLabelText={label}
+        errorText={touched && error}
+        {...input}
+        {...custom}
+    />
+);
+
+const renderDurationField = (
+    { input: { value, ...inputProps}, meta: { touched, error}, ...custom}
+) => {
+
+    const onChange = date => {
+        Date.parse(date) ? inputProps.onChange(date.toISOString()) : inputProps.onChange(null);
+    };
+    return (
+        <ThemeProvider theme={materialTheme}>
+            <TimePicker
+                ampm={false}
+                openTo="hours"
+                views={["hours", "minutes", "seconds"]}
+                format="HH:mm:ss"
+                label="Preparation time"
+                value={value ? new Date(value) : null}
+                initialFocusedDate={new Date(0, 0, 0, 0)}
+                error={touched && error}
+                onChange={onChange}
+                {...custom}
             />
-            {touched &&
-            ((error && <span className={styles.errorMsg}>{error}</span>))}
-        </div>
-    </div>
-)
+        </ThemeProvider>
+    );
+}
 
-const renderSelectField = ({ input, meta: { touched, error }, children }) => (
-    <div>
-        <div>
-            <select {...input}>
-                {children}
-            </select>
-            {touched && error && <span className={styles.errorMsg}>{error}</span>}
-        </div>
-    </div>
-)
+const renderSelectField = (
+    { input, label, meta: { touched, error }, children, ...custom },
+) => (
+    <SelectField
+        floatingLabelText={label}
+        errorText={touched && error}
+        {...input}
+        onChange={(event, index, value) => input.onChange(value)}
+        children={children}
+        {...custom}
+    />
+);
+
 
 const submit = (values) => {
     console.log((`You submitted:\n\n${JSON.stringify(values, null, 2)}`))
 }
-let  Form = (props) => {
-    const {
-        dishType,
-        handleSubmit,
-        pristine,
-        reset,
-        submitting
-    } = props;
 
+let  Form = ({ dishType, handleSubmit, pristine, reset, submitting}) => {
     return (
         <form onSubmit={handleSubmit(submit)}>
             <div>
-                <label>Dish name:</label>
                 <div>
                     <Field
                         name="name"
                         type="text"
-                        placeholder="Dish name"
-                        component={renderField}
+                        component={renderTextField}
+                        label="Dish name"
                     />
                 </div>
             </div>
             <div>
-                <label>Preparation time:</label>
                 <div>
                     <Field
                         name="preparation_time"
-                        type="time"
-                        step="1"
-                        placeholder="Preparation time"
-                        component={renderField}
+                        component={renderDurationField}
                     />
                 </div>
             </div>
             <div>
-                <label>Dish type</label>
                 <div>
-                    <Field name="type" component={renderSelectField}>
-                        <option />
-                        <option value="pizza">Pizza</option>
-                        <option value="soup">Soup</option>
-                        <option value="sandwich">Sandwich</option>
+                    <Field name="type" component={renderSelectField} label="Choose dish type">
+                        <MenuItem value="pizza" primaryText="Pizza"/>
+                        <MenuItem value="soup" primaryText="Soup"/>
+                        <MenuItem value="sandwich" primaryText="Sandwich"/>
                     </Field>
                 </div>
             </div>
             {dishType === 'pizza' &&
             <div>
-                <label>Number of slices:</label>
                 <div>
                     <Field
                         name="no_of_slices"
                         type="number"
-                        min="1"
-                        placeholder="Number of slices"
-                        component={renderField}
+                        step="1"
+                        component={renderTextField}
+                        label="Number of slices"
                     />
                 </div>
-                <label>Diameter</label>
                 <div>
                     <Field
                         name="diameter"
                         type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="Diameter"
-                        component={renderField}
+                        step="0.1"
+                        component={renderTextField}
+                        label="Diameter"
                     />
                 </div>
             </div>}
             {dishType === 'soup' &&
             <div>
-                <label>Spiciness scale:</label>
+                <label className={styles.spicinessScale}>Spiciness scale:</label>
                 <div>
                     <Field
                         name="spiciness_scale "
-                        type="range"
-                        placeholder="Spiciness scale"
-                        min="1"
-                        max="10"
-                        step="1"
-                        component={renderField}
+                        component={InputSlider}
                     />
                 </div>
             </div>}
             {dishType === 'sandwich' &&
             <div>
-                <label>Slices of bread</label>
                 <div>
                     <Field
                         name="slices_of_bread"
                         type="number"
-                        min="0"
-                        placeholder="Number of slices"
-                        component={renderField}
+                        step="1"
+                        component={renderTextField}
+                        label="Slices of bread"
                     />
                 </div>
             </div>}
             <div>
-                <button type="submit" disabled={submitting}>Submit</button>
-                <button type="button" disabled={pristine || submitting} onClick={reset}>
+                <Button type="submit" disabled={submitting} variant="contained" >
+                    Submit
+                </Button>
+                <Button variant="outlined" type="button" disabled={pristine || submitting} onClick={reset} >
                     Clear Values
-                </button>
+                </Button>
             </div>
         </form>
     );
@@ -164,3 +283,5 @@ Form = connect(state => {
 })(Form)
 
 export default Form;
+
+//#1976d2
