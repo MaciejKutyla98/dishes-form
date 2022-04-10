@@ -36,17 +36,23 @@ let Form = ({
 
     const submit = (values) => {
         if (dishType === "soup") {
-            values.spiciness_scale = spicinessValue;
+            values.spiciness_scale = parseInt(spicinessValue);
+        } else if (dishType === 'pizza') {
+            values.no_of_slices= parseInt(values.no_of_slices)
+            values.diameter= parseFloat(values.diameter)
+        } else if (dishType === 'sandwich') {
+            values.slices_of_bread= parseInt(values.slices_of_bread)
         }
         values.preparation_time = formatTime(
             values.preparation_time.getHours(),
             values.preparation_time.getMinutes(),
             values.preparation_time.getSeconds()
         );
+
         sendForm(url, {
             ...values,
         }).then(reset());
-        //console.log((`You submitted:\n\n${JSON.stringify(values, null, 2)}`))
+        console.log((`You submitted:\n\n${JSON.stringify(values, null, 2)}`))
     };
     return (
         <div className={styles.formContainer}>
