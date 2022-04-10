@@ -24,7 +24,7 @@
 
 .spicinessScale {
   font-family: Roboto, sans-serif;
-  font-size: 1rem;
+  font-size: 0.8rem;
   color: #51d1e1;
 }
 
@@ -36,7 +36,8 @@
 .buttonsContainer {
   display: flex;
   flex-direction: column;
-  margin: 0 auto;
+  justify-content: center;
+  align-items: center;
 }
 @media (min-width: 600px) {
   .buttonsContainer {
