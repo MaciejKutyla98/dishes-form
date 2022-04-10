@@ -1,3 +1,13 @@
+html {
+  font-family: Roboto, sans-serif;
+  background-color: #ffffff;
+}
 
+.App {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
 
 /*# sourceMappingURL=App.css.map */
